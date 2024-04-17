@@ -8,18 +8,14 @@ sexualorientationdetailedagesex <- read_excel("~/psy6422/sexualorientationdetail
                                                 +     skip = 1)
 View(sexualorientationdetailedagesex)
 
-# load packages
+# load/install packages
 
 library(tidyverse)
 library(shiny)
+tinytex::install_tinytex()
 
-# plot a barchart
-ggplot(sexualorientationdetailedagesex, aes(x = `Age code`, y = `Percentage of age-sex category`, fill = `Sexual orientation (9 categories) code`)) +
-  geom_bar(stat = "identity", position = "fill") +
-  labs(title = "Stacked Bar Chart of Sexual Orientation by Age Group",
-       x = "Age Group",
-       y = "Sexual Orientation") +
-  theme_minimal()
+
+
 
 # sheet 3 import data
 
@@ -54,13 +50,29 @@ View(sexualorientationreligion)
 install.packages("vcd")
 library(vcd)
 sexualorientationreligion_clean <- sexualorientationreligion[!apply(sexualorientationreligion, 1, function(x) any(grepl("\\[c\\]", x))), ]
+
 # rename the columns
-sexualorientationreligion_clean <- rename(sexualorientationreligion_clean, c( "sexual_orientation" = "Sexual orientation", "religion" = "Religion", "age" = "Age group [note 2]" , "sex" = "Sex [note 1]", "percentage" = "Percentage estimate of group [note 3] [note 4]"))
+
+sexualorientationreligion_clean <- rename(sexualorientationreligion_clean, 
+                                          c( "sexual_orientation" = "Sexual orientation", 
+                                             "religion" = "Religion", 
+                                             "age" = "Age group [note 2]" , 
+                                             "sex" = "Sex [note 1]", 
+                                             "percentage" = "Percentage estimate of group [note 3] [note 4]"))
+
 view(sexualorientationreligion)
 
+sexualorientationreligion$`Percentage estimate of group 
+[note 3] [note 4]`
 # Create a mosaic plot
+
 # new table of counts
-tab <- table(sexualorientationfurtherpersonalcharacteristicsenglandandwalescensus2021$religion, sexualorientationfurtherpersonalcharacteristicsenglandandwalescensus2021$sexual_orientation, sexualorientationfurtherpersonalcharacteristicsenglandandwalescensus2021$age, sexualorientationfurtherpersonalcharacteristicsenglandandwalescensus2021$`Percentage estimate of group 
-[note 3] [note 4]`)
+
+tab <- xtabs(percentage ~ religion + sexual_orientation, data = sexualorientationreligion_clean)
 mosaicplot(tab, main = "Mosaic Plot of Age, Religion, and Sexual Orientation")
 view(tab)
+
+
+
+
+
