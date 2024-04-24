@@ -1,3 +1,22 @@
+# List of packages to check and install if required
+
+packages <- c("here", "readxl", "tidyverse", "shiny")
+
+# Loop to check and install packages if required (quietly- without warnings)
+
+for (pkg in packages) {
+  if (!require(pkg, character.only = TRUE, quietly = TRUE)) {
+    install.packages(pkg)
+    library(pkg, character.only = TRUE)
+  }
+}
+
+# Load necessary packages
+
+library(tidyverse)
+library(shiny)
+library(here)
+
 # Import data from Excel file sheet 5: sexual orientation by age and sex
 
 library(readxl)
@@ -7,13 +26,6 @@ sexualorientationdetailedagesex <- read_excel("~/psy6422/sexualorientationdetail
                                                                                               +         "text", "skip", "text", "text"), 
                                                 +     skip = 1)
 View(sexualorientationdetailedagesex)
-
-# load/install packages
-
-library(tidyverse)
-library(shiny)
-tinytex::install_tinytex()
-
 
 
 
@@ -58,19 +70,74 @@ sexualorientationreligion_clean <- rename(sexualorientationreligion_clean,
                                              "religion" = "Religion", 
                                              "age" = "Age group [note 2]" , 
                                              "sex" = "Sex [note 1]", 
-                                             "percentage" = "Percentage estimate of group [note 3] [note 4]"))
+                                             "percentage" = "Percentage estimate of group \r\n[note 3] [note 4]"))
 
-view(sexualorientationreligion)
+view(sexualorientationreligion_clean)
 
-sexualorientationreligion$`Percentage estimate of group 
-[note 3] [note 4]`
-# Create a mosaic plot
 
-# new table of counts
 
 tab <- xtabs(percentage ~ religion + sexual_orientation, data = sexualorientationreligion_clean)
 mosaicplot(tab, main = "Mosaic Plot of Age, Religion, and Sexual Orientation")
 view(tab)
+
+ # create a stacked bar chart of religion and sexual orientation (this plot needed adjusting because it has incl. all of the data, will filter next time)
+
+library(ggplot2)
+
+ggplot(sexualorientationreligion_clean, aes(x = sexual_orientation, y = percentage, fill = religion)) +
+  geom_bar(stat = "identity", position = "stack") +
+  labs(title = "Sexual Orientation Distribution by Religion",
+       x = "Sexual Orientation",
+       y = "Religious Identity (Percentage)") +
+  scale_fill_brewer(palette = "Set3") +  # Using a color palette that is distinct
+  theme_minimal() +
+  theme(legend.position = "bottom")  # Move the legend to the bottom
+
+library(dplyr)
+
+# Filtering data using dplyr's filter
+
+filtered_data <- sexualorientationreligion_clean %>%
+  filter(sexual_orientation != "All usual residents", #exclude all usual residents line
+         age == "All ages 16 years and over", #include all ages (instead of age group breakdowns)
+         sex == "People")  #just include all people instead of breakdown of sex
+view(filtered_data)
+
+# New plot using the filtered data
+
+library(ggplot2)
+
+# Create the stacked bar chart
+
+ggplot(filtered_data, aes(x = sexual_orientation, y = percentage, fill = religion)) +
+  geom_bar(stat = "identity", position = "stack") +
+  labs(title = "Percentage Breakdown of Religious Identity by Sexual Orientation",
+       x = "Sexual Orientation",
+       y = "Percentage") +
+  scale_y_continuous(labels = scales::percent) +  # Format y-axis as percentages
+  scale_fill_brewer(palette = "Paired") +  # Use a color palette for clarity
+  theme_minimal() +  # Use a minimal theme for a cleaner look
+  theme(legend.position = "bottom")  # Position the legend at the bottom
+
+# check data to ensure that each sexual orientation totals just 100% e.g. Gay and Lesbian percentage = 100% instead of 10,000 as the plot was showing
+sum_percentage_gay_lesbian <- filtered_data %>%
+  filter(sexual_orientation == "Gay or Lesbian") %>%
+  summarise(total_percentage = sum(percentage))
+sum_percentage_gay_lesbian
+
+#corrected to fix 10,000% issue, 
+
+ggplot(filtered_data, aes(x = sexual_orientation, y = percentage / 100, fill = religion)) +
+  geom_bar(stat = "identity", position = "stack") +
+  labs(title = "Percentage Breakdown of Religious Identity by Sexual Orientation",
+       x = "Sexual Orientation",
+       y = "Percentage") +
+  scale_y_continuous(labels = scales::percent_format()) +  # Correctly format y-axis as percentages (adjustment on prev. code)
+  scale_fill_brewer(palette = "Paired") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+ 
 
 
 
